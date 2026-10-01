@@ -39,6 +39,25 @@ if "selected_id" not in st.session_state:
 if "view_mode" not in st.session_state:
     st.session_state.view_mode = "MAIN"
 
+# --- 削除確認ダイアログ ---
+@st.dialog("作業依頼書の削除")
+def delete_confirm_dialog(target_id):
+    st.write(f"ID: **{target_id}** の作業依頼書を削除してもよろしいですか？")
+    st.caption("※この操作は取り消せません。")
+
+    col_cancel, col_confirm = st.columns(2)
+    with col_cancel:
+        if st.button("キャンセル", use_container_width=True):
+            st.rerun()
+    with col_confirm:
+        if st.button("削除する", type="primary", use_container_width=True):
+            st.session_state.requests_df = st.session_state.requests_df[
+                st.session_state.requests_df["id"] != target_id
+            ].reset_index(drop=True)
+            st.session_state.selected_id = None
+            st.success("削除しました。")
+            st.rerun()
+
 # --- サイドバー：設定・モード切り替え ---
 st.sidebar.title("設定・ログイン")
 user_mode = st.sidebar.radio("モード選択", ["閲覧用", "編集用"])
@@ -64,7 +83,6 @@ if st.session_state.view_mode == "PRINT":
     # 印刷用CSS
     st.markdown("""
         <style>
-        /* 画面表示時：中央寄せでA4風プレビュー */
         .print-container {
             max-width: 800px;
             margin: 0 auto;
@@ -108,12 +126,10 @@ if st.session_state.view_mode == "PRINT":
             vertical-align: top !important;
         }
 
-        /* 画面遷移トリガー（チェックボックス）を非表示化 */
         div[data-testid="stCheckbox"] {
             display: none !important;
         }
 
-        /* 印刷時（紙・PDFへ出力するとき）：すべてのボタン・iframe・枠線を完全に消去 */
         @media print {
             header, footer, [data-testid="stSidebar"], [data-testid="stHeader"], iframe, div[data-testid="stCustomComponentV1"] {
                 display: none !important;
@@ -133,13 +149,11 @@ if st.session_state.view_mode == "PRINT":
         </style>
     """, unsafe_allow_html=True)
 
-    # 画面遷移トリガー用チェックボックス（画面上ではCSSで非表示）
     is_back_clicked = st.checkbox("back_trigger_key", key="back_trigger_key")
     if is_back_clicked:
         st.session_state.view_mode = "MAIN"
         st.rerun()
 
-    # 操作ナビゲーションバー（戻るボタン＆印刷ボタン）
     st.components.v1.html(
         """
         <script>
@@ -179,7 +193,6 @@ if st.session_state.view_mode == "PRINT":
         height=50
     )
 
-    # 帳票HTMLの描画
     st.markdown(f"""
         <div class="print-container">
             <div class="sheet-title">作 業 依 頼 書</div>
@@ -297,14 +310,20 @@ else:
     df = st.session_state.requests_df
 
     # 画面上部操作バー
-    col_back, col_print = st.columns([2, 1])
+    col_back, col_del, col_print = st.columns([2, 1, 1.5])
     with col_back:
         if st.button("⬅️ 一覧に戻る", use_container_width=True):
             st.session_state.selected_id = None
             st.rerun()
 
+    with col_del:
+        # 既存データの閲覧・編集時かつ編集モード時のみ削除ボタンを表示
+        if sel_id != "NEW" and is_edit_mode:
+            if st.button("🗑️ 削除", use_container_width=True, type="secondary"):
+                delete_confirm_dialog(sel_id)
+
     with col_print:
-        if st.button("🖨️ A4帳票形式で印刷 / PDF保存", use_container_width=True, type="primary"):
+        if st.button("🖨️ A4帳票形式で印刷", use_container_width=True, type="primary"):
             st.session_state.view_mode = "PRINT"
             st.rerun()
 
