@@ -13,11 +13,17 @@ st.set_page_config(
 )
 
 # --- Supabase 接続設定 ---
+# --- Supabase 接続設定 ---
 @st.cache_resource
 def init_supabase() -> Client:
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
-    return create_client(url, key)
+    # 改行やスペースを完全に除去する処理
+    raw_url = st.secrets["SUPABASE_URL"]
+    raw_key = st.secrets["SUPABASE_KEY"]
+    
+    clean_url = "".join(raw_url.split())
+    clean_key = "".join(raw_key.split())
+    
+    return create_client(clean_url, clean_key)
 
 supabase = init_supabase()
 
