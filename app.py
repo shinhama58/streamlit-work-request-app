@@ -16,12 +16,17 @@ st.set_page_config(
 # --- Supabase 接続設定 ---
 @st.cache_resource
 def init_supabase() -> Client:
-    # 改行やスペースを完全に除去する処理
+    # Secretsから取得
     raw_url = st.secrets["SUPABASE_URL"]
     raw_key = st.secrets["SUPABASE_KEY"]
     
-    clean_url = "".join(raw_url.split())
-    clean_key = "".join(raw_key.split())
+    # 改行や空白文字を完全に除去
+    clean_url = "".join(raw_url.split()).strip()
+    clean_key = "".join(raw_key.split()).strip()
+    
+    # 非ASCII文字（全角スペース等）を排除
+    clean_url = "".join(c for c in clean_url if ord(c) < 128)
+    clean_key = "".join(c for c in clean_key if ord(c) < 128)
     
     return create_client(clean_url, clean_key)
 
