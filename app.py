@@ -13,7 +13,6 @@ st.set_page_config(
 )
 
 # --- Supabase 接続設定 ---
-# --- Supabase 接続設定 ---
 @st.cache_resource
 def init_supabase() -> Client:
     # Secretsから取得
