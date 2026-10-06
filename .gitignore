@@ -1,3 +1,14 @@
+# Python / 仮想環境
 .venv/
+venv/
 __pycache__/
 *.pyc
+
+# Streamlit 秘密情報
+.streamlit/secrets.toml
+
+# OS・エディタ生成ファイル
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
